@@ -927,9 +927,8 @@ function toggle_capture()
 }
 
 
-// App initialization
-async function Load()
-{
+//app initialization
+async function Load() {
     console.log("================================================");
     console.log("APPLICATION LOADING...");
     console.log("================================================");
@@ -945,10 +944,6 @@ async function Load()
     // get fps element
     fps = document.getElementById("fps");
 
-    // keep screen on,
-    // where supported
-    //RequestWakeLock();
-
     engine = new BABYLON.Engine(canvas, true);
     scene = await CreateScene(engine, canvas);
 
@@ -960,16 +955,22 @@ async function Load()
 
     let light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 0, 1), scene);
     light1.intensity = 1.0;
-    //light1.includedOnlyMeshes = [ face_mesh ];
-    
-    let light2 = new BABYLON.DirectionalLight("light2", new BABYLON.Vector3(0, 0.2, .9), scene);
 
+    let light2 = new BABYLON.DirectionalLight("light2", new BABYLON.Vector3(0, 0.2, .9), scene);
 
     let gl = new BABYLON.GlowLayer("glow", scene, {
         mainTextureFixedSize: 512,
         blurKernelSize: 64
     });
     gl.intensity = 0.5;
+
+    // Load the GLB model
+    BABYLON.SceneLoader.ImportMesh("", "textures/models/", "model(18)-opt.glb", scene, function (meshes) {
+        meshes.forEach(function (mesh) {
+            mesh.position = new BABYLON.Vector3(0, 0, 0); // Adjust the position as needed
+        });
+    });
+    
 
     // start ai
     if (ai_detection_mode > 0) ai_detection = new Ai_MediaPipe(video, dynTexCtx, face_mesh, stream_width, stream_height, ai_detection_mode);
@@ -978,14 +979,11 @@ async function Load()
 
     ready = true;
 
-    window.addEventListener("resize", function()
-    {
+    window.addEventListener("resize", function() {
         engine.resize();
     });
 
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      "ui"
-    );
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui");
 
     var btn_freeze = BABYLON.GUI.Button.CreateSimpleButton("btn1", "Freeze/Save");
     btn_freeze.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -997,7 +995,19 @@ async function Load()
     btn_freeze.color = "white";
     btn_freeze.background = "gray";
     btn_freeze.onPointerUpObservable.add(function() {
-        toggle_capture();
+        btn_freeze.onPointerUpObservable.add(function() {
+    toggle_capture();
+    
+    // Resize face mesh
+    face_mesh.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
+    
+    // Position face mesh
+    face_mesh.position = new BABYLON.Vector3(0, 4, 0);
+
+    // Load the human model into the scene using a URL
+    loadHumanModel(scene);
+});
+
     });
     advancedTexture.addControl(btn_freeze);    
 
@@ -1015,18 +1025,16 @@ async function Load()
     });
     advancedTexture.addControl(btn_wireframe);    
 
-    canvas.addEventListener('keydown', function(e)
-    {
-        if (e.keyCode == 32)            // space
-        {
+    canvas.addEventListener('keydown', function(e) {
+        if (e.keyCode == 32) {          // space
             toggle_capture();
-        }
-        else if (e.keyCode == 87)       // 'w', toggles wireframe
-        {
+        } else if (e.keyCode == 87) {   // 'w', toggles wireframe
             toggle_wireframe();
         }
     });
 }
+
+
 
 
 // Main loop
@@ -1111,4 +1119,3 @@ function Capture_Callback(results)
 window.onload = function()
 {
     Load().then(() => { Run() });
-}
