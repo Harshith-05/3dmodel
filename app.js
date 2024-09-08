@@ -1,9 +1,3 @@
-// Face Control and Export
-//
-// by Vander R. N. Dias, a.k.a. imerso
-// https://imerso.github.io
-// https://github.com/imerso
-
 import { Ai_MediaPipe } from './modules/ai_mediapipe.js';
 import { WebcamCapture } from './modules/webcam.js';
 
